@@ -5,6 +5,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.Email;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
@@ -43,6 +45,9 @@ public class AuthCredential extends BaseEntity {
     @Column(nullable = false, length = 20)
     private AuthStatus status;
 
+    @OneToOne(mappedBy = "authCredential", fetch = FetchType.LAZY)
+    private User user;
+
     private AuthCredential(String userId, String email, String passwordHash) {
         this.userId = userId;
         this.email = email.toLowerCase().trim();
@@ -70,6 +75,11 @@ public class AuthCredential extends BaseEntity {
             throw new IllegalStateException("Cannot confirm auth credential");
         }
         this.status = AuthStatus.ACTIVE;
+    }
+
+    public void updatePassword(String newPasswordHash) {
+        this.passwordHash = newPasswordHash;
+        this.passwordChangedAt = LocalDateTime.now();
     }
 
 }
