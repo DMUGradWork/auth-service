@@ -26,5 +26,11 @@ public record UserRegisterRequest(
     String phoneNumber,
 
     @NotNull(message = "Role cannot be null")
-    UserRole role
+    UserRole role,
+
+    String gender,
+    
+    String region,
+    
+    String personality
 ) {}
