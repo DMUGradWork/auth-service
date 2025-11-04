@@ -46,25 +46,37 @@ public class User extends BaseEntity {
     @Column(nullable = false, length = 13)
     private String phoneNumber;
 
+    @Column(length = 10)
+    private String gender;
+
+    @Column(length = 100)
+    private String region;
+
+    @Column(length = 200)
+    private String personality; // 쉼표로 구분된 성격 태그들 (예: "열정,성실,도전")
+
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "auth_credential_id")
     private AuthCredential authCredential;
 
-    private User(String userId, String email, UserRole role, String name, String phoneNumber, AuthCredential authCredential) {
+    private User(String userId, String email, UserRole role, String name, String phoneNumber, String gender, String region, String personality, AuthCredential authCredential) {
         this.userId = userId;
         this.email = email.toLowerCase().trim();
         this.role = role;
         this.name = name;
         this.phoneNumber = phoneNumber;
+        this.gender = gender;
+        this.region = region;
+        this.personality = personality;
         this.authCredential = authCredential;
     }
 
-    public static User createUser(String userId, String email, String name, String phoneNumber, AuthCredential authCredential) {
-        return new User(userId, email, UserRole.USER, name, phoneNumber, authCredential);
+    public static User createUser(String userId, String email, String name, String phoneNumber, String gender, String region, String personality, AuthCredential authCredential) {
+        return new User(userId, email, UserRole.USER, name, phoneNumber, gender, region, personality, authCredential);
     }
 
     public static User createAdmin(String userId, String email, String phoneNumber, AuthCredential authCredential) {
-        return new User(userId, email, UserRole.ADMIN, null, phoneNumber, authCredential);
+        return new User(userId, email, UserRole.ADMIN, null, phoneNumber, null, null, null, authCredential);
     }
 
     public void updatePassword(String newPasswordHash) {

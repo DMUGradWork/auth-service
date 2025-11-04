@@ -19,6 +19,7 @@ public interface AuthService {
     void deleteAuthCredential(String userId);
     
     UserSearchResponse getUserById(String userId);
+    UserSearchResponse getUserByEmail(String email);
     
     Page<UserSearchResponse> getAllUsers(int page, int size);
     

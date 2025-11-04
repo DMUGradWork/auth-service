@@ -68,6 +68,12 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/users/email")
+    public ResponseEntity<UserSearchResponse> getUserByEmail(@RequestParam String email) {
+        UserSearchResponse response = authService.getUserByEmail(email);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/users")
     public ResponseEntity<Page<UserSearchResponse>> getAllUsers(
             @RequestParam(defaultValue = "0") int page,
