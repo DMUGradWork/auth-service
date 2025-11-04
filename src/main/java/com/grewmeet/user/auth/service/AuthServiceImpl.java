@@ -13,6 +13,7 @@ import com.grewmeet.user.auth.exception.AlreadyExistsEmailException;
 import com.grewmeet.user.auth.repository.AuthCredentialRepository;
 import com.grewmeet.user.auth.repository.UserRepository;
 
+import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
 import lombok.RequiredArgsConstructor;
@@ -48,8 +49,9 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public UserRegisterResponse registerUser(UserRegisterRequest request) {
-        if (userRepository.existsByEmail(request.email())) {
-            throw new AlreadyExistsEmailException(request.email());
+        String normalizedEmail = request.email() == null ? null : request.email().toLowerCase().trim();
+        if (userRepository.existsByEmail(normalizedEmail)) {
+            throw new AlreadyExistsEmailException(normalizedEmail);
         }
 
         String userId = generateUserId();
@@ -64,7 +66,7 @@ public class AuthServiceImpl implements AuthService {
         
         User user;
         if (request.role() == UserRole.USER) {
-            user = User.createUser(userId, request.email(), request.name(), request.phoneNumber(), authCredential);
+            user = User.createUser(userId, request.email(), request.name(), request.phoneNumber(), request.gender(), request.region(), request.personality(), authCredential);
         } else {
             user = User.createAdmin(userId, request.email(), request.phoneNumber(), authCredential);
         }
@@ -123,6 +125,17 @@ public class AuthServiceImpl implements AuthService {
         return UserSearchResponse.from(user);
     }
 
+    // 이메일로 회원 조회
+    @Override
+    @Transactional(readOnly = true)
+    public UserSearchResponse getUserByEmail(String email) {
+        String normalizedEmail = email == null ? null : email.toLowerCase().trim();
+        User user = userRepository.findByEmail(normalizedEmail)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 이메일을 가진 회원이 없습니다 : " + normalizedEmail));
+
+        return UserSearchResponse.from(user);
+    }
+
     // 전체 사용자 조회
     @Override
     @Transactional(readOnly = true)
@@ -150,8 +163,14 @@ public class AuthServiceImpl implements AuthService {
         String normalizedEmail = request.email() == null ? null : request.email().toLowerCase().trim();
 
         // 이메일로 사용자 조회
-        User user = userRepository.findByEmail(normalizedEmail)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 올바르지 않습니다."));
+        Optional<User> userOpt = userRepository.findByEmail(normalizedEmail);
+        if (userOpt.isEmpty()) {
+            // 디버깅: 모든 사용자 이메일 조회
+            System.out.println("[LOGIN DEBUG] Searching for email: " + normalizedEmail);
+            System.out.println("[LOGIN DEBUG] Total users in DB: " + userRepository.count());
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 이메일의 계정을 찾을 수 없습니다: " + normalizedEmail);
+        }
+        User user = userOpt.get();
 
         AuthCredential auth = user.getAuthCredential();
         if (auth == null || !passwordEncoder.matches(request.password(), auth.getPasswordHash())) {
