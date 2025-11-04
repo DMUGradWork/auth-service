@@ -7,7 +7,8 @@ public record UserRegisterResponse(
     String userId,
     String name,
     String phoneNumber,
-    String role
+    String role,
+    String gender
 ) {
     public static UserRegisterResponse from(User user) {
         return new UserRegisterResponse(
@@ -15,7 +16,8 @@ public record UserRegisterResponse(
                 user.getUserId(),
                 user.getName(),
                 user.getPhoneNumber(),
-                user.getRole().getDisplayName()
+                user.getRole().getDisplayName(),
+                user.getGender()
         );
     }
 }
